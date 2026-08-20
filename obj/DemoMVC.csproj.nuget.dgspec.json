@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Lenovo\\DemoMVC\\DemoMVC.csproj": {}
+    "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Lenovo\\DemoMVC\\DemoMVC.csproj": {
+    "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Lenovo\\DemoMVC\\DemoMVC.csproj",
+        "projectUniqueName": "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj",
         "projectName": "DemoMVC",
-        "projectPath": "C:\\Users\\Lenovo\\DemoMVC\\DemoMVC.csproj",
+        "projectPath": "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj",
         "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Lenovo\\DemoMVC\\obj\\",
+        "outputPath": "D:\\PTPMQL\\demoMVC\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
