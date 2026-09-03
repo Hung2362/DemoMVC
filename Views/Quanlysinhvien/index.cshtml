@@ -1,0 +1,27 @@
+@{
+    ViewData["Title"] = "Quản lý Sinh Viên";
+}
+
+<h2>View Index QuanlysinhvienController</h2>
+
+<ul>
+    <li>1. Tạo form để gửi dữ liệu "Họ tên" từ view lên controller</li>
+    <li>2. Controller nhận dữ liệu từ view gửi lên và xử lý</li>
+    <li>3. Hiển thị kết quả sau khi xử lý</li>
+</ul>
+
+<!-- Cập nhật asp-controller="Quanlysinhvien" -->
+<form asp-controller="Quanlysinhvien" asp-action="Index" method="post">
+    <input type="text" name="fullName" placeholder="Nhập họ tên" required />
+    <input type="text" name="address" placeholder="Nhập địa chỉ" required />
+    <input type="text" name="university" placeholder="Nhập trường đại học" required />
+    <button type="submit">Gửi dữ liệu</button>
+</form>
+
+<br />
+
+<!-- Hiển thị kết quả -->
+@if (ViewBag.Message != null)
+{
+    <h3 style="color: blue;">@ViewBag.Message</h3>
+}

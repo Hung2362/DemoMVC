@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj": {}
+    "D:\\HOC TAP\\PTPMQL\\DemoMVC\\DemoMVC.csproj": {}
   },
   "projects": {
-    "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj": {
+    "D:\\HOC TAP\\PTPMQL\\DemoMVC\\DemoMVC.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj",
+        "projectUniqueName": "D:\\HOC TAP\\PTPMQL\\DemoMVC\\DemoMVC.csproj",
         "projectName": "DemoMVC",
-        "projectPath": "D:\\PTPMQL\\demoMVC\\DemoMVC.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\PTPMQL\\demoMVC\\obj\\",
+        "projectPath": "D:\\HOC TAP\\PTPMQL\\DemoMVC\\DemoMVC.csproj",
+        "packagesPath": "D:\\DevTools\\NuGetPackages",
+        "outputPath": "D:\\HOC TAP\\PTPMQL\\DemoMVC\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -45,6 +45,12 @@
         "net10.0": {
           "framework": "net10.0",
           "targetAlias": "net10.0",
+          "dependencies": {
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

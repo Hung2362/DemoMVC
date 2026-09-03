@@ -1,0 +1,40 @@
+@model DemoMVC.Models.Quanlysinhvien
+
+@{
+    ViewData["Title"] = "Lesson 4 - Quản lý Sinh Viên";
+}
+
+<h1>Nội dung buổi học ngày 03/09/2026</h1>
+<p>- Ôn lại kiến thức về định tuyến trong MVC</p>
+<p>- Tạo một controller và action</p>
+<p>- Tạo view tương ứng với action và controller vừa tạo</p>
+<p>- Gửi nhận dữ liệu giữa controller và view: submit form và ViewBag/ViewData</p>
+<p>- Gửi nhận dữ liệu giữa controller và view thông qua Model</p>
+
+<hr />
+
+<h2>View Index Lesson4Controller - Quản Lý Sinh Viên (Sử dụng Model)</h2>
+
+<ul>
+    <li>1. Tạo form để gửi dữ liệu từ view lên controller</li>
+    <li>2. Controller nhận dữ liệu thông qua Model và xử lý</li>
+    <li>3. Hiển thị kết quả sau khi xử lý</li>
+</ul>
+
+<!-- Form gửi dữ liệu tương ứng với các thuộc tính của Model -->
+<form asp-controller="Lesson4" asp-action="Index" method="post">
+    <input type="text" name="FullName" placeholder="Nhập họ tên" required />
+    <input type="text" name="Address" placeholder="Nhập địa chỉ" required />
+    <input type="text" name="University" placeholder="Nhập trường đại học" required />
+    <button type="submit">Gửi dữ liệu</button>
+</form>
+
+<br />
+
+<!-- Hiển thị kết quả lấy trực tiếp từ đối tượng Model -->
+@if (Model != null)
+{
+    <h3 style="color: blue;">
+        FullName: @Model.FullName, Address: @Model.Address, University: @Model.University?.ToUpper()
+    </h3>
+}
