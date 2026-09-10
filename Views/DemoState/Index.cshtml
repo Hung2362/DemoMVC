@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Demo State";
+}
+
+<!-- Hiển thị ViewData -->
+<h3>@ViewData["TitlePage"]</h3>
+
+<!-- Hiển thị TempData sau khi Redirect -->
+@if (TempData["AlertMessage"] != null)
+{
+    <p style="color: green; font-weight: bold;">
+        Thông báo: @TempData["AlertMessage"]
+    </p>
+}
+
+<hr />
+
+<!-- Form 1: Test ViewBag (Submit tại chỗ, không redirect) -->
+<h4>1. Thử nghiệm ViewBag</h4>
+<form asp-controller="DemoState" asp-action="Index" method="post">
+    <div>
+        <label>Tên sinh viên:</label>
+        <input type="text" name="studentName" required />
+    </div>
+    <div>
+        <label>Lớp:</label>
+        <input type="text" name="className" required />
+    </div>
+    <button type="submit">Gửi trực tiếp (ViewBag)</button>
+</form>
+
+@if (ViewBag.Info != null)
+{
+    <p style="color: blue;">Kết quả từ ViewBag: @ViewBag.Info</p>
+}
+
+<hr />
+
+<!-- Form 2: Test TempData (Submit xong gọi RedirectToAction) -->
+<h4>2. Thử nghiệm TempData</h4>
+<form asp-controller="DemoState" asp-action="SaveData" method="post">
+    <div>
+        <label>Tên sinh viên cần lưu:</label>
+        <input type="text" name="studentName" required />
+    </div>
+    <button type="submit">Lưu và chuyển trang (TempData)</button>
+</form>
