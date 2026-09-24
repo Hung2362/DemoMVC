@@ -1,0 +1,30 @@
+@model DemoMVC.Models.Quanlysinhvien
+
+@{
+    ViewData["Title"] = "Xóa Sinh Viên";
+}
+
+<h2>Xác nhận xóa</h2>
+<h4 class="text-danger">Bạn có chắc chắn muốn xóa sinh viên này không?</h4>
+
+<div class="border p-3 rounded mb-3 col-md-6">
+    <dl class="row">
+        <dt class="col-sm-4">Mã sinh viên:</dt>
+        <dd class="col-sm-8">@Model.MaSV</dd>
+
+        <dt class="col-sm-4">Họ và tên:</dt>
+        <dd class="col-sm-8">@Model.FullName</dd>
+
+        <dt class="col-sm-4">Địa chỉ:</dt>
+        <dd class="col-sm-8">@Model.Address</dd>
+
+        <dt class="col-sm-4">Trường đại học:</dt>
+        <dd class="col-sm-8">@Model.University</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="MaSV" />
+        <button type="submit" class="btn btn-danger">Xóa luôn</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+    </form>
+</div>

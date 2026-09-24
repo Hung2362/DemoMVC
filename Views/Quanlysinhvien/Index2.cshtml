@@ -1,0 +1,42 @@
+@model IEnumerable<DemoMVC.Models.Quanlysinhvien>
+
+@{
+    ViewData["Title"] = "Danh sách Sinh Viên";
+}
+
+<h2>Danh sách Sinh Viên</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Thêm mới Sinh Viên</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.MaSV)</th>
+            <th>@Html.DisplayNameFor(model => model.FullName)</th>
+            <th>@Html.DisplayNameFor(model => model.Address)</th>
+            <th>@Html.DisplayNameFor(model => model.University)</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@item.MaSV</td>
+            <td>@item.FullName</td>
+            <td>@item.Address</td>
+            <td>@item.University</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.MaSV" class="btn btn-warning btn-sm">Sửa</a>
+                <a asp-action="Delete" asp-route-id="@item.MaSV" class="btn btn-danger btn-sm">Xóa</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

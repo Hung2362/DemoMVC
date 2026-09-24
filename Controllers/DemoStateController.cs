@@ -10,7 +10,7 @@ namespace DemoMVC.Controllers
             // 1. ViewData: Dùng để gán tiêu đề trang
             ViewData["TitlePage"] = "Ví dụ Quản lý trạng thái";
 
-            return View();
+            return View(); 
         }
 
         [HttpPost]

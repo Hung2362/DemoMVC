@@ -1,0 +1,45 @@
+@model DemoMVC.Models.Quanlysinhvien
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Sinh Viên";
+}
+
+<h2>Chỉnh sửa Sinh Viên</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <input type="hidden" asp-for="MaSV" />
+
+            <div class="mb-3">
+                <label asp-for="MaSV" class="form-label"></label>
+                <input asp-for="MaSV" class="form-control" disabled />
+            </div>
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label"></label>
+                <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="University" class="form-label"></label>
+                <input asp-for="University" class="form-control" />
+                <span asp-validation-for="University" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Cập nhật</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
