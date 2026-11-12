@@ -1,27 +1,475 @@
 @{
-    ViewData["Title"] = "Quản lý Sinh Viên";
+    ViewData["Title"] = "Quản lý sinh viên";
 }
 
-<h2>View Index QuanlysinhvienController</h2>
+<style>
+    #studentNotification {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+        transition: opacity 180ms ease, transform 180ms ease;
+    }
 
-<ul>
-    <li>1. Tạo form để gửi dữ liệu "Họ tên" từ view lên controller</li>
-    <li>2. Controller nhận dữ liệu từ view gửi lên và xử lý</li>
-    <li>3. Hiển thị kết quả sau khi xử lý</li>
-</ul>
+    #studentNotification.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
 
-<!-- Cập nhật asp-controller="Quanlysinhvien" -->
-<form asp-controller="Quanlysinhvien" asp-action="Index" method="post">
-    <input type="text" name="fullName" placeholder="Nhập họ tên" required />
-    <input type="text" name="address" placeholder="Nhập địa chỉ" required />
-    <input type="text" name="university" placeholder="Nhập trường đại học" required />
-    <button type="submit">Gửi dữ liệu</button>
-</form>
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Quản lý sinh viên</h1>
+            <p class="text-muted mb-0">Danh sách sinh viên</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="addStudentButton">
+            Thêm mới Sinh Viên
+        </button>
+    </div>
 
-<br />
+    <div id="studentNotification" class="alert d-none mb-3" role="status" aria-live="polite"></div>
 
-<!-- Hiển thị kết quả -->
-@if (ViewBag.Message != null)
-{
-    <h3 style="color: blue;">@ViewBag.Message</h3>
+    <div class="row g-2 align-items-center mb-3">
+        <div class="col-12 col-md">
+            <input type="search"
+                   class="form-control"
+                   id="txtSearch"
+                   placeholder="Nhập mã hoặc tên sinh viên..."
+                   aria-label="Tìm kiếm sinh viên" />
+        </div>
+        <div class="col-6 col-md-auto">
+            <button type="button" class="btn btn-primary w-100" id="searchButton">Tìm kiếm</button>
+        </div>
+        <div class="col-6 col-md-auto">
+            <button type="button" class="btn btn-outline-secondary w-100" id="refreshButton">Làm mới</button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Mã sinh viên</th>
+                            <th scope="col">Họ và tên</th>
+                            <th scope="col">Địa chỉ</th>
+                            <th scope="col">Trường đại học</th>
+                            <th scope="col" class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblData">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+        <span id="recordCount" class="text-muted" aria-live="polite">Tổng số: 0 bản ghi</span>
+        <nav aria-label="Phân trang danh sách sinh viên">
+            <ul class="pagination mb-0" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+<div class="modal fade" id="studentModal" tabindex="-1" aria-labelledby="studentModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="studentForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="studentModalTitle">Thêm mới sinh viên</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="studentModalError" class="alert alert-danger d-none" role="alert"></div>
+                    <div class="mb-3">
+                        <label for="MaSV" class="form-label">Mã sinh viên</label>
+                        <input type="text" class="form-control" id="MaSV" maxlength="20" required />
+                        <div class="invalid-feedback">Vui lòng nhập mã sinh viên (tối đa 20 ký tự).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="FullName" class="form-label">Họ và tên</label>
+                        <input type="text" class="form-control" id="FullName" minlength="3" maxlength="100" required />
+                        <div class="invalid-feedback">Họ tên phải có từ 3 đến 100 ký tự.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Address" class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-control" id="Address" required />
+                        <div class="invalid-feedback">Vui lòng nhập địa chỉ.</div>
+                    </div>
+                    <div>
+                        <label for="University" class="form-label">Trường đại học</label>
+                        <input type="text" class="form-control" id="University" required />
+                        <div class="invalid-feedback">Vui lòng nhập trường đại học.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="saveStudentButton">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="deleteModalTitle">Xác nhận xóa</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa sinh viên <strong id="deleteStudentName"></strong> không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const urls = {
+                getAll: '@Url.Action("GetAll", "Quanlysinhvien")',
+                getById: '@Url.Action("GetById", "Quanlysinhvien")',
+                create: '@Url.Action("Create", "Quanlysinhvien")',
+                edit: '@Url.Action("Edit", "Quanlysinhvien")',
+                delete: '@Url.Action("Delete", "Quanlysinhvien")'
+            };
+            const antiForgeryToken = $('#studentForm input[name="__RequestVerificationToken"]').val();
+            const studentModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('studentModal'));
+            const deleteModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteModal'));
+            let editingStudentId = null;
+            let deletingStudentId = null;
+            let notificationTimer;
+            let currentPage = 1;
+            let currentSearch = '';
+
+            function showNotification(message, isSuccess) {
+                const $notification = $('#studentNotification');
+                window.clearTimeout(notificationTimer);
+                $notification
+                    .stop(true, true)
+                    .removeClass('d-none alert-success alert-danger is-visible')
+                    .addClass(isSuccess ? 'alert-success' : 'alert-danger')
+                    .text(message);
+
+                window.requestAnimationFrame(function () {
+                    $notification.addClass('is-visible');
+                });
+
+                notificationTimer = window.setTimeout(function () {
+                    $notification.removeClass('is-visible');
+                    window.setTimeout(function () {
+                        if (!$notification.hasClass('is-visible')) {
+                            $notification.addClass('d-none');
+                        }
+                    }, 200);
+                }, 4000);
+            }
+
+            function getErrorMessage(xhr) {
+                const response = xhr.responseJSON;
+                if (response && response.message) {
+                    return response.message;
+                }
+
+                if (response && response.title) {
+                    return response.title;
+                }
+
+                return 'Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.';
+            }
+
+            function showModalError(message) {
+                $('#studentModalError').removeClass('d-none').text(message);
+            }
+
+            function showTableMessage(message, isError) {
+                const $cell = $('<td>', {
+                    colspan: 5,
+                    class: isError ? 'text-center text-danger py-4' : 'text-center text-muted py-4'
+                }).text(message);
+
+                $('#tblData').empty().append($('<tr>').append($cell));
+            }
+
+            function renderPagination(data) {
+                const $pagination = $('#pagination').empty();
+                const totalPages = data.totalPages;
+                const pageIndex = data.pageIndex;
+
+                function addPage(label, page, disabled, active, ariaLabel) {
+                    const $item = $('<li>', {
+                        class: 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '')
+                    });
+                    const $link = $('<button>', {
+                        type: 'button',
+                        class: 'page-link',
+                        text: label,
+                        disabled: disabled,
+                        'aria-label': ariaLabel || label
+                    });
+
+                    if (active) {
+                        $link.attr('aria-current', 'page');
+                    }
+                    if (!disabled && !active) {
+                        $link.attr('data-page', page);
+                    }
+
+                    $item.append($link).appendTo($pagination);
+                }
+
+                addPage('Trước', pageIndex - 1, !data.hasPreviousPage, false, 'Trang trước');
+
+                if (totalPages > 0) {
+                    const visiblePages = new Set([1, totalPages]);
+                    for (let page = Math.max(1, pageIndex - 1); page <= Math.min(totalPages, pageIndex + 1); page++) {
+                        visiblePages.add(page);
+                    }
+
+                    let previousPage = 0;
+                    Array.from(visiblePages).sort(function (a, b) { return a - b; }).forEach(function (page) {
+                        if (previousPage && page - previousPage > 1) {
+                            $pagination.append(
+                                $('<li>', { class: 'page-item disabled' })
+                                    .append($('<span>', { class: 'page-link', text: '...' }))
+                            );
+                        }
+
+                        addPage(String(page), page, false, page === pageIndex);
+                        previousPage = page;
+                    });
+                }
+
+                addPage('Sau', pageIndex + 1, !data.hasNextPage, false, 'Trang sau');
+            }
+
+            function loadData(pageIndex = 1) {
+                currentPage = pageIndex;
+                showTableMessage('Đang tải dữ liệu...', false);
+
+                $.getJSON(urls.getAll, {
+                    searchString: currentSearch,
+                    pageIndex: currentPage
+                })
+                    .done(function (data) {
+                        const $tbody = $('#tblData').empty();
+                        if (!data || !Array.isArray(data.items)) {
+                            showTableMessage('Dữ liệu trả về không hợp lệ.', true);
+                            return;
+                        }
+
+                        currentPage = data.pageIndex;
+                        $('#recordCount').text('Tổng số: ' + data.totalCount + ' bản ghi');
+                        renderPagination(data);
+
+                        if (data.items.length === 0) {
+                            showTableMessage('Chưa có sinh viên nào.', false);
+                            return;
+                        }
+
+                        data.items.forEach(function (student) {
+                            const $row = $('<tr>')
+                                .append($('<td>').text(student.maSV))
+                                .append($('<td>').text(student.fullName))
+                                .append($('<td>').text(student.address))
+                                .append($('<td>').text(student.university));
+                            const $actions = $('<td>', { class: 'text-end text-nowrap' });
+
+                            $('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-primary me-2 edit-student',
+                                text: 'Sửa'
+                            }).data('student-id', student.maSV)
+                                .on('click', function () {
+                                    openEditModal($(this).data('student-id'));
+                                })
+                                .appendTo($actions);
+                            $('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-danger delete-student',
+                                text: 'Xóa'
+                            }).data('student-id', student.maSV)
+                                .data('student-name', student.fullName)
+                                .on('click', function () {
+                                    confirmDelete(
+                                        $(this).data('student-id'),
+                                        $(this).data('student-name')
+                                    );
+                                })
+                                .appendTo($actions);
+
+                            $row.append($actions).appendTo($tbody);
+                        });
+                    })
+                    .fail(function (xhr) {
+                        showTableMessage(getErrorMessage(xhr), true);
+                    });
+            }
+
+            function openCreateModal() {
+                const form = $('#studentForm')[0];
+                form.reset();
+                form.classList.remove('was-validated');
+                $('#studentForm .form-control').removeClass('is-invalid');
+                $('#MaSV').prop('readonly', false);
+                $('#studentModalTitle').text('Thêm mới sinh viên');
+                $('#saveStudentButton').text('Lưu').prop('disabled', false);
+                $('#studentModalError').addClass('d-none').empty();
+                editingStudentId = null;
+                studentModal.show();
+            }
+
+            function openEditModal(id) {
+                $.getJSON(urls.getById, { id: id })
+                    .done(function (student) {
+                        if (!student) {
+                            showNotification('Không tìm thấy sinh viên cần cập nhật.', false);
+                            loadData(currentPage);
+                            return;
+                        }
+
+                        openCreateModal();
+                        editingStudentId = student.maSV;
+                        $('#MaSV').val(student.maSV).prop('readonly', true);
+                        $('#FullName').val(student.fullName);
+                        $('#Address').val(student.address);
+                        $('#University').val(student.university);
+                        $('#studentModalTitle').text('Cập nhật sinh viên');
+                        $('#saveStudentButton').text('Cập nhật');
+                    })
+                    .fail(function (xhr) {
+                        showNotification(getErrorMessage(xhr), false);
+                    });
+            }
+
+            function saveStudent() {
+                const form = $('#studentForm')[0];
+                form.classList.add('was-validated');
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+                const student = {
+                    maSV: $('#MaSV').val().trim(),
+                    fullName: $('#FullName').val().trim(),
+                    address: $('#Address').val().trim(),
+                    university: $('#University').val().trim()
+                };
+                const isEdit = editingStudentId !== null;
+                const $saveButton = $('#saveStudentButton').prop('disabled', true);
+
+                $('#studentModalError').addClass('d-none').empty();
+                $.ajax({
+                    url: isEdit ? urls.edit : urls.create,
+                    method: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(student),
+                    headers: { RequestVerificationToken: antiForgeryToken }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            showModalError(result.message || 'Không thể lưu thông tin sinh viên.');
+                            return;
+                        }
+
+                        studentModal.hide();
+                        showNotification(result.message, true);
+                        loadData(currentPage);
+                    })
+                    .fail(function (xhr) {
+                        showModalError(getErrorMessage(xhr));
+                    })
+                    .always(function () {
+                        $saveButton.prop('disabled', false);
+                    });
+            }
+
+            function confirmDelete(id, studentName) {
+                deletingStudentId = id;
+                $('#deleteStudentName').text(studentName || id);
+                deleteModal.show();
+            }
+
+            function deleteStudent() {
+                if (deletingStudentId === null) {
+                    return;
+                }
+
+                const $deleteButton = $('#confirmDeleteButton').prop('disabled', true);
+                $.ajax({
+                    url: urls.delete,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { id: deletingStudentId },
+                    headers: { RequestVerificationToken: antiForgeryToken }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            showNotification(result.message || 'Không thể xóa sinh viên.', false);
+                            return;
+                        }
+
+                        deleteModal.hide();
+                        showNotification(result.message, true);
+                        loadData(currentPage);
+                    })
+                    .fail(function (xhr) {
+                        showNotification(getErrorMessage(xhr), false);
+                    })
+                    .always(function () {
+                        $deleteButton.prop('disabled', false);
+                    });
+            }
+
+            $('#addStudentButton').on('click', openCreateModal);
+
+            function searchStudents() {
+                currentSearch = $('#txtSearch').val().trim();
+                loadData(1);
+            }
+
+            $('#searchButton').on('click', searchStudents);
+            $('#txtSearch').on('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    searchStudents();
+                }
+            });
+            $('#refreshButton').on('click', function () {
+                $('#txtSearch').val('');
+                currentSearch = '';
+                loadData(1);
+            });
+            $('#pagination').on('click', '.page-link[data-page]', function () {
+                loadData(Number($(this).data('page')));
+            });
+
+            $('#studentForm').on('submit', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                saveStudent();
+            });
+
+            $('#confirmDeleteButton').on('click', deleteStudent);
+
+            $('#deleteModal').on('hidden.bs.modal', function () {
+                deletingStudentId = null;
+            });
+
+            loadData(currentPage);
+        });
+    </script>
 }

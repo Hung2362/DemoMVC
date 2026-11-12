@@ -1,7 +1,8 @@
+using DemoMVC.Data;
+using DemoMVC.Helpers;
+using DemoMVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DemoMVC.Data;
-using DemoMVC.Models;
 
 namespace DemoMVC.Controllers
 {
@@ -14,105 +15,145 @@ namespace DemoMVC.Controllers
             _context = context;
         }
 
-        // 1. READ: Danh sách sinh viên
-        public async Task<IActionResult> Index()
-        {
-            var list = await _context.Quanlysinhviens.ToListAsync();
-            return View(list);
-        }
-
-        // 2. CREATE: Hiển thị form thêm mới
-        [HttpGet]
-        public IActionResult Create()
+        public IActionResult Index()
         {
             return View();
         }
 
-        // CREATE (POST): Xử lý thêm mới kèm kiểm tra Validate
+        [HttpGet]
+        public async Task<IActionResult> GetAll(
+            string searchString = "",
+            int pageIndex = 1,
+            int pageSize = 5)
+        {
+            var query = _context.Quanlysinhviens
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                searchString = searchString.Trim();
+                query = query.Where(student =>
+                    student.MaSV.Contains(searchString) ||
+                    student.FullName.Contains(searchString) ||
+                    student.Address.Contains(searchString) ||
+                    student.University.Contains(searchString));
+            }
+
+            var pagedList = await PaginatedList<Quanlysinhvien>.CreateAsync(
+                query.OrderBy(student => student.MaSV),
+                pageIndex,
+                pageSize);
+
+            return Json(new
+            {
+                items = pagedList.Items,
+                pageIndex = pagedList.PageIndex,
+                totalPages = pagedList.TotalPages,
+                totalCount = pagedList.TotalCount,
+                hasPreviousPage = pagedList.HasPreviousPage,
+                hasNextPage = pagedList.HasNextPage
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var student = await _context.Quanlysinhviens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.MaSV == id);
+
+            return Json(student);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Quanlysinhvien sv)
+        public async Task<IActionResult> Create([FromBody] Quanlysinhvien sv)
         {
-            if (ModelState.IsValid)
+            if (sv is null)
             {
-                if (await _context.Quanlysinhviens.AnyAsync(s => s.MaSV == sv.MaSV))
-                {
-                    ModelState.AddModelError("MaSV", "Mã sinh viên này đã tồn tại.");
-                    return View(sv);
-                }
-
-                _context.Add(sv);
-                await _context.SaveChangesAsync();
-                TempData["Message"] = "Thêm mới sinh viên thành công!";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = "Dữ liệu sinh viên không hợp lệ." });
             }
-            return View(sv);
+
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = GetValidationErrors() });
+            }
+
+            var exists = await _context.Quanlysinhviens
+                .AnyAsync(s => s.MaSV == sv.MaSV);
+
+            if (exists)
+            {
+                return Json(new { success = false, message = "Mã sinh viên này đã tồn tại." });
+            }
+
+            _context.Quanlysinhviens.Add(sv);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Thêm thành công!" });
         }
 
-        // 3. UPDATE: Hiển thị form cập nhật
-        [HttpGet]
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return NotFound();
-
-            var sv = await _context.Quanlysinhviens.FindAsync(id);
-            if (sv == null) return NotFound();
-
-            return View(sv);
-        }
-
-        // UPDATE (POST): Lưu thông tin chỉnh sửa
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, Quanlysinhvien sv)
+        public async Task<IActionResult> Edit([FromBody] Quanlysinhvien sv)
         {
-            if (id != sv.MaSV) return NotFound();
-
-            if (ModelState.IsValid)
+            if (sv is null)
             {
-                try
-                {
-                    _context.Update(sv);
-                    await _context.SaveChangesAsync();
-                    TempData["Message"] = "Cập nhật sinh viên thành công!";
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.Quanlysinhviens.Any(s => s.MaSV == sv.MaSV))
-                        return NotFound();
-                    else
-                        throw;
-                }
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = "Dữ liệu sinh viên không hợp lệ." });
             }
-            return View(sv);
+
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = GetValidationErrors() });
+            }
+
+            var student = await _context.Quanlysinhviens
+                .FirstOrDefaultAsync(s => s.MaSV == sv.MaSV);
+
+            if (student is null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy sinh viên cần cập nhật." });
+            }
+
+            student.FullName = sv.FullName;
+            student.Address = sv.Address;
+            student.University = sv.University;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Cập nhật thành công!" });
         }
 
-        // 4. DELETE: Xác nhận xóa
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
-            if (string.IsNullOrEmpty(id)) return NotFound();
+            var student = await _context.Quanlysinhviens
+                .FirstOrDefaultAsync(s => s.MaSV == id);
 
-            var sv = await _context.Quanlysinhviens.FirstOrDefaultAsync(m => m.MaSV == id);
-            if (sv == null) return NotFound();
+            if (student is null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy sinh viên cần xóa." });
+            }
 
-            return View(sv);
+            _context.Quanlysinhviens.Remove(student);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Xóa thành công!" });
         }
 
-        // DELETE (POST): Thực hiện xóa khỏi CSDL
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
+        private string GetValidationErrors()
         {
-            var sv = await _context.Quanlysinhviens.FindAsync(id);
-            if (sv != null)
-            {
-                _context.Quanlysinhviens.Remove(sv);
-                await _context.SaveChangesAsync();
-                TempData["Message"] = "Xóa sinh viên thành công!";
-            }
-            return RedirectToAction(nameof(Index));
+            var errors = ModelState.Values
+                .SelectMany(value => value.Errors)
+                .Select(error => error.ErrorMessage)
+                .Where(message => !string.IsNullOrWhiteSpace(message));
+
+            var message = string.Join(" ", errors);
+            return string.IsNullOrWhiteSpace(message)
+                ? "Dữ liệu không hợp lệ."
+                : message;
         }
     }
 }

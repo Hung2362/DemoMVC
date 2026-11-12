@@ -425,3 +425,35 @@ D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\ru\Microsoft.CodeAnalysis.Workspaces
 D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
 D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\appsettings.Development.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\appsettings.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\DemoMVC.staticwebassets.runtime.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\DemoMVC.staticwebassets.endpoints.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\DemoMVC.deps.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\DemoMVC.runtimeconfig.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\DemoMVC.dll
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-pagination-build\DemoMVC.pdb
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\appsettings.Development.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\appsettings.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\DemoMVC.staticwebassets.runtime.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\DemoMVC.staticwebassets.endpoints.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\DemoMVC.deps.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\DemoMVC.runtimeconfig.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\DemoMVC.dll
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-paged-getall-build\DemoMVC.pdb
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\appsettings.Development.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\appsettings.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\DemoMVC.staticwebassets.runtime.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\DemoMVC.staticwebassets.endpoints.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\DemoMVC.deps.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\DemoMVC.runtimeconfig.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\DemoMVC.dll
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-search-pagination-build\DemoMVC.pdb
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\appsettings.Development.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\appsettings.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\DemoMVC.staticwebassets.runtime.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\DemoMVC.staticwebassets.endpoints.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\DemoMVC.deps.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\DemoMVC.runtimeconfig.json
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\DemoMVC.dll
+C:\Users\Lenovo\AppData\Local\Temp\DemoMVC-subject-build\DemoMVC.pdb

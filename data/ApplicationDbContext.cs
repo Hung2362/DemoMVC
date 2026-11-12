@@ -10,5 +10,7 @@ namespace DemoMVC.Data
         }
 
         public DbSet<Quanlysinhvien> Quanlysinhviens { get; set; }
+
+        public DbSet<Quanlymonhoc> Quanlymonhocs { get; set; }
     }
 }

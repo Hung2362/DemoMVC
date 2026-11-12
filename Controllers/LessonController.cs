@@ -11,7 +11,6 @@ namespace DemoMVC.Controllers
         {
             return View();
         }
-
         // 2. POST: Nhận đối tượng Model sinh viên từ form
         [HttpPost]
         public IActionResult Index(Quanlysinhvien sv)

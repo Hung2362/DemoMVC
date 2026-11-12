@@ -1,0 +1,388 @@
+@{
+    ViewData["Title"] = "Quản lý môn học";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Quản lý môn học</h1>
+            <p class="text-muted mb-0">Danh sách môn học</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="addSubjectButton">Thêm mới môn học</button>
+    </div>
+
+    <div id="subjectNotification" class="alert d-none mb-3" role="status" aria-live="polite"></div>
+
+    <div class="row g-2 align-items-center mb-3">
+        <div class="col-12 col-md">
+            <input type="search" class="form-control" id="txtSearch"
+                   placeholder="Nhập mã, tên môn học hoặc khoa phụ trách..."
+                   aria-label="Tìm kiếm môn học" />
+        </div>
+        <div class="col-6 col-md-auto">
+            <button type="button" class="btn btn-primary w-100" id="searchButton">Tìm kiếm</button>
+        </div>
+        <div class="col-6 col-md-auto">
+            <button type="button" class="btn btn-outline-secondary w-100" id="refreshButton">Làm mới</button>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Mã môn học</th>
+                            <th scope="col">Tên môn học</th>
+                            <th scope="col">Số tín chỉ</th>
+                            <th scope="col">Khoa phụ trách</th>
+                            <th scope="col" class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblData">
+                        <tr><td colspan="5" class="text-center text-muted py-4">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+        <span id="recordCount" class="text-muted" aria-live="polite">Tổng số: 0 bản ghi</span>
+        <nav aria-label="Phân trang danh sách môn học">
+            <ul class="pagination mb-0" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+<div class="modal fade" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="subjectForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="subjectModalTitle">Thêm mới môn học</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="subjectModalError" class="alert alert-danger d-none" role="alert"></div>
+                    <div class="mb-3">
+                        <label for="MaMH" class="form-label">Mã môn học</label>
+                        <input type="text" class="form-control" id="MaMH" required />
+                        <div class="invalid-feedback">Vui lòng nhập mã môn học.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="TenMH" class="form-label">Tên môn học</label>
+                        <input type="text" class="form-control" id="TenMH" required />
+                        <div class="invalid-feedback">Vui lòng nhập tên môn học.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="SoTinChi" class="form-label">Số tín chỉ</label>
+                        <input type="number" step="1" class="form-control" id="SoTinChi" required />
+                        <div class="invalid-feedback">Vui lòng nhập số tín chỉ nguyên.</div>
+                    </div>
+                    <div>
+                        <label for="KhoaPhuTrach" class="form-label">Khoa phụ trách</label>
+                        <input type="text" class="form-control" id="KhoaPhuTrach" required />
+                        <div class="invalid-feedback">Vui lòng nhập khoa phụ trách.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="saveSubjectButton">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="deleteModalTitle">Xác nhận xóa</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa môn học <strong id="deleteSubjectName"></strong> không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const urls = {
+                getAll: '@Url.Action("GetAll", "Quanlymonhoc")',
+                getById: '@Url.Action("GetById", "Quanlymonhoc")',
+                create: '@Url.Action("Create", "Quanlymonhoc")',
+                edit: '@Url.Action("Edit", "Quanlymonhoc")',
+                delete: '@Url.Action("Delete", "Quanlymonhoc")'
+            };
+            const token = $('#subjectForm input[name="__RequestVerificationToken"]').val();
+            const subjectModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('subjectModal'));
+            const deleteModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteModal'));
+            let currentPage = 1;
+            let currentSearch = '';
+            let editingId = null;
+            let deletingId = null;
+
+            function notify(message, success) {
+                $('#subjectNotification')
+                    .removeClass('d-none alert-success alert-danger')
+                    .addClass(success ? 'alert-success' : 'alert-danger')
+                    .text(message);
+            }
+
+            function errorMessage(xhr) {
+                return xhr.responseJSON?.message || xhr.responseJSON?.title ||
+                    'Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.';
+            }
+
+            function showTableMessage(message, isError) {
+                const cell = $('<td>', {
+                    colspan: 5,
+                    class: isError ? 'text-center text-danger py-4' : 'text-center text-muted py-4'
+                }).text(message);
+                $('#tblData').empty().append($('<tr>').append(cell));
+            }
+
+            function renderPagination(data) {
+                const $pagination = $('#pagination').empty();
+
+                function addPage(label, page, disabled, active, ariaLabel) {
+                    const $item = $('<li>', {
+                        class: 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '')
+                    });
+                    const $button = $('<button>', {
+                        type: 'button',
+                        class: 'page-link',
+                        text: label,
+                        disabled: disabled,
+                        'aria-label': ariaLabel || label
+                    });
+                    if (active) {
+                        $button.attr('aria-current', 'page');
+                    } else if (!disabled) {
+                        $button.attr('data-page', page);
+                    }
+                    $item.append($button).appendTo($pagination);
+                }
+
+                addPage('Trước', data.pageIndex - 1, !data.hasPreviousPage, false, 'Trang trước');
+                if (data.totalPages > 0) {
+                    const pages = new Set([1, data.totalPages]);
+                    for (let page = Math.max(1, data.pageIndex - 1);
+                        page <= Math.min(data.totalPages, data.pageIndex + 1);
+                        page++) {
+                        pages.add(page);
+                    }
+
+                    let previous = 0;
+                    Array.from(pages).sort((a, b) => a - b).forEach(function (page) {
+                        if (previous && page - previous > 1) {
+                            $('<li>', { class: 'page-item disabled' })
+                                .append($('<span>', { class: 'page-link', text: '...' }))
+                                .appendTo($pagination);
+                        }
+                        addPage(String(page), page, false, page === data.pageIndex);
+                        previous = page;
+                    });
+                }
+                addPage('Sau', data.pageIndex + 1, !data.hasNextPage, false, 'Trang sau');
+            }
+
+            function loadData(pageIndex = 1) {
+                currentPage = pageIndex;
+                showTableMessage('Đang tải dữ liệu...', false);
+
+                $.getJSON(urls.getAll, { searchString: currentSearch, pageIndex: currentPage })
+                    .done(function (data) {
+                        if (!data || !Array.isArray(data.items)) {
+                            showTableMessage('Dữ liệu trả về không hợp lệ.', true);
+                            return;
+                        }
+
+                        currentPage = data.pageIndex;
+                        $('#recordCount').text('Tổng số: ' + data.totalCount + ' bản ghi');
+                        renderPagination(data);
+                        if (data.items.length === 0) {
+                            showTableMessage('Chưa có môn học nào.', false);
+                            return;
+                        }
+
+                        const $tbody = $('#tblData').empty();
+                        data.items.forEach(function (subject) {
+                            const $row = $('<tr>')
+                                .append($('<td>').text(subject.maMH))
+                                .append($('<td>').text(subject.tenMH))
+                                .append($('<td>').text(subject.soTinChi))
+                                .append($('<td>').text(subject.khoaPhuTrach));
+                            const $actions = $('<td>', { class: 'text-end text-nowrap' });
+
+                            $('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-primary me-2',
+                                text: 'Sửa'
+                            }).on('click', function () { openEditModal(subject.maMH); }).appendTo($actions);
+                            $('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-danger',
+                                text: 'Xóa'
+                            }).on('click', function () {
+                                confirmDelete(subject.maMH, subject.tenMH);
+                            }).appendTo($actions);
+
+                            $row.append($actions).appendTo($tbody);
+                        });
+                    })
+                    .fail(function (xhr) {
+                        showTableMessage(errorMessage(xhr), true);
+                    });
+            }
+
+            function openCreateModal() {
+                $('#subjectForm')[0].reset();
+                $('#subjectForm').removeClass('was-validated');
+                $('#subjectModalError').addClass('d-none').empty();
+                $('#MaMH').prop('readonly', false);
+                $('#subjectModalTitle').text('Thêm mới môn học');
+                $('#saveSubjectButton').text('Lưu').prop('disabled', false);
+                editingId = null;
+                subjectModal.show();
+            }
+
+            function openEditModal(id) {
+                $.getJSON(urls.getById, { id: id })
+                    .done(function (subject) {
+                        if (!subject) {
+                            notify('Không tìm thấy môn học cần cập nhật.', false);
+                            loadData(currentPage);
+                            return;
+                        }
+
+                        openCreateModal();
+                        editingId = subject.maMH;
+                        $('#MaMH').val(subject.maMH).prop('readonly', true);
+                        $('#TenMH').val(subject.tenMH);
+                        $('#SoTinChi').val(subject.soTinChi);
+                        $('#KhoaPhuTrach').val(subject.khoaPhuTrach);
+                        $('#subjectModalTitle').text('Cập nhật môn học');
+                        $('#saveSubjectButton').text('Cập nhật');
+                    })
+                    .fail(function (xhr) { notify(errorMessage(xhr), false); });
+            }
+
+            function saveSubject() {
+                const form = $('#subjectForm')[0];
+                form.classList.add('was-validated');
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+                const subject = {
+                    maMH: $('#MaMH').val().trim(),
+                    tenMH: $('#TenMH').val().trim(),
+                    soTinChi: Number($('#SoTinChi').val()),
+                    khoaPhuTrach: $('#KhoaPhuTrach').val().trim()
+                };
+                const $button = $('#saveSubjectButton').prop('disabled', true);
+                $('#subjectModalError').addClass('d-none').empty();
+
+                $.ajax({
+                    url: editingId === null ? urls.create : urls.edit,
+                    method: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(subject),
+                    headers: { RequestVerificationToken: token }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            $('#subjectModalError').removeClass('d-none')
+                                .text(result.message || 'Không thể lưu môn học.');
+                            return;
+                        }
+
+                        subjectModal.hide();
+                        notify(result.message, true);
+                        loadData(currentPage);
+                    })
+                    .fail(function (xhr) {
+                        $('#subjectModalError').removeClass('d-none').text(errorMessage(xhr));
+                    })
+                    .always(function () { $button.prop('disabled', false); });
+            }
+
+            function confirmDelete(id, name) {
+                deletingId = id;
+                $('#deleteSubjectName').text(name || id);
+                deleteModal.show();
+            }
+
+            function deleteSubject() {
+                if (deletingId === null) {
+                    return;
+                }
+
+                const $button = $('#confirmDeleteButton').prop('disabled', true);
+                $.ajax({
+                    url: urls.delete,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { id: deletingId },
+                    headers: { RequestVerificationToken: token }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            notify(result.message || 'Không thể xóa môn học.', false);
+                            return;
+                        }
+
+                        deleteModal.hide();
+                        notify(result.message, true);
+                        loadData(currentPage);
+                    })
+                    .fail(function (xhr) { notify(errorMessage(xhr), false); })
+                    .always(function () { $button.prop('disabled', false); });
+            }
+
+            $('#addSubjectButton').on('click', openCreateModal);
+            $('#subjectForm').on('submit', function (event) {
+                event.preventDefault();
+                saveSubject();
+            });
+            $('#confirmDeleteButton').on('click', deleteSubject);
+            $('#deleteModal').on('hidden.bs.modal', function () { deletingId = null; });
+
+            function search() {
+                currentSearch = $('#txtSearch').val().trim();
+                loadData(1);
+            }
+
+            $('#searchButton').on('click', search);
+            $('#txtSearch').on('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    search();
+                }
+            });
+            $('#refreshButton').on('click', function () {
+                $('#txtSearch').val('');
+                currentSearch = '';
+                loadData(1);
+            });
+            $('#pagination').on('click', '[data-page]', function () {
+                loadData(Number($(this).attr('data-page')));
+            });
+
+            loadData(currentPage);
+        });
+    </script>
+}

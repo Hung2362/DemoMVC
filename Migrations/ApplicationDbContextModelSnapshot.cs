@@ -44,6 +44,27 @@ namespace DemoMVC.Migrations
 
                     b.ToTable("Quanlysinhviens");
                 });
+
+            modelBuilder.Entity("DemoMVC.Models.Quanlymonhoc", b =>
+                {
+                    b.Property<string>("MaMH")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("KhoaPhuTrach")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SoTinChi")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TenMH")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("MaMH");
+
+                    b.ToTable("Quanlymonhocs");
+                });
 #pragma warning restore 612, 618
         }
     }
