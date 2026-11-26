@@ -1,0 +1,23 @@
+﻿@page
+@model ConfirmEmailModel
+@{
+    ViewData["Title"] = "Xác nhận email";
+}
+
+<div class="auth-page">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <section class="card auth-card border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <span class="auth-icon"><i class="bi bi-envelope-check-fill" aria-hidden="true"></i></span>
+                    <h1 class="h3 mt-3 mb-4">@ViewData["Title"]</h1>
+                    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+                    {
+                        <div class="alert alert-info" role="status">@Model.StatusMessage</div>
+                    }
+                    <a asp-page="./Login" class="btn btn-primary mt-2">Đến trang đăng nhập</a>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

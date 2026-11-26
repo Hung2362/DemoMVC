@@ -1,16 +1,57 @@
 @model RolePermissionsViewModel
 
-@{
-    ViewData["Title"] = "Phân quyền Action";
+@functions {
+    private static string GetControllerLabel(string controllerName)
+    {
+        return controllerName switch
+        {
+            "Home" => "Trang chủ",
+            "Quanlysinhvien" => "Quản lý sinh viên",
+            "Quanlymonhoc" => "Quản lý môn học",
+            "ExcelImport" => "Nhập dữ liệu Excel",
+            "DemoState" => "Quản lý trạng thái minh họa",
+            "Lesson4" => "Bài học 4",
+            _ => controllerName
+        };
+    }
+
+    private static string GetActionLabel(string actionName)
+    {
+        return actionName switch
+        {
+            "Index" => "Xem danh sách",
+            "Privacy" => "Xem chính sách bảo mật",
+            "Error" => "Trang lỗi",
+            "GetAll" => "Tải danh sách",
+            "GetById" => "Xem thông tin",
+            "Search" => "Tìm kiếm",
+            "Create" => "Thêm mới",
+            "Edit" => "Chỉnh sửa",
+            "Delete" => "Xóa",
+            "Details" => "Xem chi tiết",
+            "DownloadTemplate" => "Tải mẫu Excel",
+            "Upload" => "Nhập dữ liệu",
+            "SaveData" => "Lưu dữ liệu",
+            _ => actionName
+        };
+    }
 }
 
-<div class="container py-4">
+@{
+    ViewData["Title"] = "Phân quyền chức năng";
+}
+
+<div class="container py-4 bg-light rounded-3">
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-3 p-lg-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h1 class="h3 mb-1">Phân quyền Action</h1>
+            <h1 class="h3 mb-1"><i class="bi bi-shield-lock-fill text-primary me-2" aria-hidden="true"></i>Phân quyền chức năng</h1>
             <p class="text-muted mb-0">Role: <strong>@Model.RoleName</strong></p>
         </div>
-        <a asp-controller="Role" asp-action="Index" class="btn btn-outline-secondary">Quay lại quản lý Role</a>
+        <a asp-controller="Role" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Quay lại quản lý Role
+        </a>
     </div>
 
     <div id="permissionNotification" class="alert d-none mb-3" role="status" aria-live="polite"></div>
@@ -24,23 +65,23 @@
             @for (var controllerIndex = 0; controllerIndex < Model.Controllers.Count; controllerIndex++)
             {
                 var controller = Model.Controllers[controllerIndex];
-                <section class="card shadow-sm controller-permission-group"
+                <section class="card border-0 shadow-sm controller-permission-group"
                          data-controller-name="@controller.ControllerName">
-                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-                        <h2 class="h5 mb-0">@controller.ControllerName</h2>
+                    <div class="card-header bg-primary-subtle d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <h2 class="h5 mb-0"><i class="bi bi-folder2-open me-2" aria-hidden="true"></i>@GetControllerLabel(controller.ControllerName)</h2>
                         <div class="form-check">
                             <input class="form-check-input select-controller-actions"
                                    type="checkbox"
                                    id="selectController@(controllerIndex)" />
                             <label class="form-check-label" for="selectController@(controllerIndex)">
-                                Chọn tất cả
+                                Chọn tất cả chức năng
                             </label>
                         </div>
                     </div>
                     <div class="card-body">
                         @if (controller.Actions.Count == 0)
                         {
-                            <span class="text-muted">Không có Action.</span>
+                            <span class="text-muted">Không có chức năng.</span>
                         }
                         else
                         {
@@ -57,7 +98,7 @@
                                                    checked="@action.IsSelected" />
                                             <label class="form-check-label"
                                                    for="permission-@(controllerIndex)-@action.ActionName">
-                                                @action.ActionName
+                                                @GetActionLabel(action.ActionName)
                                             </label>
                                         </div>
                                     </div>
@@ -69,17 +110,19 @@
             }
             @if (Model.Controllers.Count == 0)
             {
-                <div class="alert alert-info mb-0">Không tìm thấy Controller hoặc Action nào.</div>
+                <div class="alert alert-info mb-0">Không tìm thấy mục phân quyền nào.</div>
             }
         </div>
 
         <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-primary" id="savePermissionsButton">
-                Lưu phân quyền
+            <button type="submit" class="btn btn-primary btn-sm" id="savePermissionsButton">
+                <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Lưu phân quyền
             </button>
         </div>
     </form>
 </div>
+        </div>
+    </div>
 
 @section Scripts {
     <script>
@@ -172,8 +215,8 @@
                     .done(function (result) {
                         showNotification(
                             result.message || (result.success
-                                ? 'Cập nhật quyền Action thành công!'
-                                : 'Không thể cập nhật quyền Action.'),
+                                ? 'Cập nhật quyền chức năng thành công!'
+                                : 'Không thể cập nhật quyền chức năng.'),
                             result.success
                         );
                     })

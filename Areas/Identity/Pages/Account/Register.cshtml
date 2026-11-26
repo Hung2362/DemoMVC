@@ -1,0 +1,74 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<div class="auth-page">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <section class="card auth-card border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <div class="auth-heading text-center mb-4">
+                        <span class="auth-icon"><i class="bi bi-person-plus-fill" aria-hidden="true"></i></span>
+                        <h1 class="h3 mt-3 mb-2">@ViewData["Title"]</h1>
+                        <p class="text-muted mb-0">Tạo tài khoản để sử dụng các chức năng của hệ thống.</p>
+                    </div>
+
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username"
+                                   aria-required="true" placeholder="ten@vidu.vn" />
+                            <label asp-for="Input.Email">Địa chỉ email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password"
+                                   aria-required="true" placeholder="Mật khẩu" />
+                            <label asp-for="Input.Password">Mật khẩu</label>
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password"
+                                   aria-required="true" placeholder="Xác nhận mật khẩu" />
+                            <label asp-for="Input.ConfirmPassword">Xác nhận mật khẩu</label>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-primary btn-lg">
+                            <i class="bi bi-person-check-fill me-2" aria-hidden="true"></i>Đăng ký tài khoản
+                        </button>
+                        <p class="text-center text-muted mt-4 mb-0">
+                            Đã có tài khoản?
+                            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="fw-semibold text-decoration-none">
+                                Đăng nhập
+                            </a>
+                        </p>
+                    </form>
+
+                    @if (Model.ExternalLogins?.Count > 0)
+                    {
+                        <div class="auth-divider"><span>Hoặc đăng ký bằng</span></div>
+                        <form id="external-account" asp-page="./ExternalLogin"
+                              asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <div class="d-grid gap-2">
+                                @foreach (var provider in Model.ExternalLogins)
+                                {
+                                    <button type="submit" class="btn btn-outline-secondary"
+                                            name="provider" value="@provider.Name"
+                                            title="Đăng ký bằng @provider.DisplayName">
+                                        @provider.DisplayName
+                                    </button>
+                                }
+                            </div>
+                        </form>
+                    }
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

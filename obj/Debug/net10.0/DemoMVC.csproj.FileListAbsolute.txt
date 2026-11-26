@@ -219,7 +219,6 @@ D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\scopedcss\bundle\DemoMVC.styles.css
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\scopedcss\projectbundle\DemoMVC.bundle.scp.css
-D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\3xqpwvxjmo-{0}-b9sayid5wm-b9sayid5wm.gz
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\wxksowlaa2-{0}-61n19gt1b8-61n19gt1b8.gz
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\i7pifeklos-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\ffshl3hb68-{0}-bqjiyaj88i-bqjiyaj88i.gz
@@ -281,8 +280,6 @@ D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\5xejjieq4f-{0}-2z0ns9nrw6
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\4zkt78b4uj-{0}-muycvpuwrr-muycvpuwrr.gz
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\9oii8m2kst-{0}-87fc7y1x7t-87fc7y1x7t.gz
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\spxu58lbjx-{0}-mlv21k5csn-mlv21k5csn.gz
-D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\q1zz9avq9c-{0}-vmxe2v1iue-vmxe2v1iue.gz
-D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\h0opwfbn65-{0}-vmxe2v1iue-vmxe2v1iue.gz
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\staticwebassets.build.json
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\staticwebassets.build.json.cache
 D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\staticwebassets.development.json
@@ -531,3 +528,6 @@ D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\ExcelNumberFormat.dll
 D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\RBush.dll
 D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\SixLabors.Fonts.dll
 D:\HOC TAP\PTPMQL\DemoMVC\bin\Debug\net10.0\System.IO.Packaging.dll
+D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\q1zz9avq9c-{0}-4a38lc24mb-4a38lc24mb.gz
+D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\h0opwfbn65-{0}-4a38lc24mb-4a38lc24mb.gz
+D:\HOC TAP\PTPMQL\DemoMVC\obj\Debug\net10.0\compressed\3xqpwvxjmo-{0}-rmrkwljgb8-rmrkwljgb8.gz
