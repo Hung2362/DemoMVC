@@ -145,6 +145,14 @@
                     'Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại.';
             }
 
+            $(document).ajaxError(function (event, xhr) {
+                if (xhr.status === 401) {
+                    notify('Bạn cần đăng nhập để tiếp tục. Vui lòng đăng nhập rồi thử lại.', false);
+                } else if (xhr.status === 403) {
+                    notify('Tài khoản User không có quyền thêm, sửa hoặc xóa. Vui lòng dùng tài khoản Admin.', false);
+                }
+            });
+
             function showTableMessage(message, isError) {
                 const cell = $('<td>', {
                     colspan: 5,

@@ -1,0 +1,270 @@
+@model IReadOnlyList<UserRolesViewModel>
+
+@{
+    ViewData["Title"] = "Phân quyền User";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Phân quyền User</h1>
+            <p class="text-muted mb-0">Danh sách người dùng và các Role hiện tại</p>
+        </div>
+    </div>
+
+    <div id="userRoleNotification" class="alert d-none mb-3" role="status" aria-live="polite"></div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Email</th>
+                            <th scope="col">Role hiện tại</th>
+                            <th scope="col" class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr data-user-id="@user.UserId">
+                                <td>@(user.Email ?? "Chưa có email")</td>
+                                <td class="user-roles">
+                                    @{
+                                        var selectedRoles = user.Roles.Where(role => role.IsSelected).ToList();
+                                    }
+                                    @if (selectedRoles.Count == 0)
+                                    {
+                                        <span class="text-muted">Chưa được gán Role</span>
+                                    }
+                                    else
+                                    {
+                                        foreach (var role in selectedRoles)
+                                        {
+                                            <span class="badge text-bg-secondary me-1">@role.RoleName</span>
+                                        }
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary assign-user-roles-button"
+                                            data-user-id="@user.UserId">
+                                        Phân quyền / Gán Role
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">Chưa có người dùng nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userRoleModal" tabindex="-1" aria-labelledby="userRoleModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="userRoleForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="userRoleModalTitle">Phân quyền User</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="userRoleModalError" class="alert alert-danger d-none" role="alert"></div>
+                    <div id="roleCheckboxList" class="d-grid gap-2">
+                        <span class="text-muted">Chọn người dùng để tải danh sách Role.</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="saveUserRolesButton">Lưu phân quyền</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const urls = {
+                getUserRoles: '@Url.Action("GetUserRoles", "UserRole")',
+                updateUserRoles: '@Url.Action("UpdateUserRoles", "UserRole")'
+            };
+            const antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+            const userRoleModal = new bootstrap.Modal(document.getElementById('userRoleModal'));
+            let currentUser = null;
+            let currentRoles = [];
+
+            function getErrorMessage(xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    return xhr.responseJSON.message;
+                }
+
+                if (xhr.status === 401) {
+                    return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                }
+
+                if (xhr.status === 403) {
+                    return 'Bạn không có quyền thực hiện thao tác này.';
+                }
+
+                return 'Đã xảy ra lỗi khi xử lý yêu cầu.';
+            }
+
+            function showNotification(message, success) {
+                $('#userRoleNotification')
+                    .toggleClass('alert-success', success)
+                    .toggleClass('alert-danger', !success)
+                    .text(message)
+                    .removeClass('d-none');
+            }
+
+            function renderRoles(roles) {
+                currentRoles = roles;
+                const $list = $('#roleCheckboxList').empty();
+                if (roles.length === 0) {
+                    $list.append($('<span>', {
+                        class: 'text-muted',
+                        text: 'Hệ thống chưa có Role nào.'
+                    }));
+                    return;
+                }
+
+                roles.forEach(function (role, index) {
+                    const checkboxId = 'userRoleCheckbox' + index;
+                    const $checkbox = $('<input>', {
+                        type: 'checkbox',
+                        class: 'form-check-input user-role-checkbox',
+                        id: checkboxId
+                    })
+                        .attr('data-role-id', role.roleId)
+                        .prop('checked', role.isSelected);
+                    const $label = $('<label>', {
+                        class: 'form-check-label',
+                        for: checkboxId
+                    }).text(role.roleName);
+                    $list.append(
+                        $('<div>', { class: 'form-check' }).append($checkbox, $label)
+                    );
+                });
+            }
+
+            function openUserRolesModal(userId) {
+                currentUser = { userId: userId, email: '' };
+                currentRoles = [];
+                $('#userRoleModalTitle').text('Phân quyền User');
+                $('#userRoleModalError').addClass('d-none').empty();
+                $('#roleCheckboxList').empty().append(
+                    $('<span>', { class: 'text-muted', text: 'Đang tải danh sách Role...' })
+                );
+                $('#saveUserRolesButton').prop('disabled', true);
+                userRoleModal.show();
+
+                $.getJSON(urls.getUserRoles, { userId: userId })
+                    .done(function (user) {
+                        currentUser = { userId: user.userId, email: user.email || '' };
+                        $('#userRoleModalTitle').text(
+                            'Phân quyền: ' + (currentUser.email || currentUser.userId)
+                        );
+                        renderRoles(user.roles || []);
+                        $('#saveUserRolesButton').prop('disabled', false);
+                    })
+                    .fail(function (xhr) {
+                        $('#roleCheckboxList').empty();
+                        $('#userRoleModalError').removeClass('d-none').text(getErrorMessage(xhr));
+                    });
+            }
+
+            function updateUserRoles() {
+                if (currentUser === null) {
+                    return;
+                }
+
+                const selectedRoleIds = new Set();
+                $('#roleCheckboxList .user-role-checkbox:checked').each(function () {
+                    selectedRoleIds.add(String($(this).attr('data-role-id')));
+                });
+
+                const model = {
+                    userId: currentUser.userId,
+                    email: currentUser.email,
+                    roles: currentRoles.map(function (role) {
+                        return {
+                            roleId: role.roleId,
+                            roleName: role.roleName,
+                            isSelected: selectedRoleIds.has(role.roleId)
+                        };
+                    })
+                };
+                const $button = $('#saveUserRolesButton').prop('disabled', true);
+                $('#userRoleModalError').addClass('d-none').empty();
+
+                $.ajax({
+                    url: urls.updateUserRoles,
+                    method: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(model),
+                    headers: { RequestVerificationToken: antiForgeryToken }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            $('#userRoleModalError').removeClass('d-none')
+                                .text(result.message || 'Không thể cập nhật phân quyền.');
+                            return;
+                        }
+
+                        const $rolesCell = $('tr[data-user-id]').filter(function () {
+                            return $(this).attr('data-user-id') === currentUser.userId;
+                        }).find('.user-roles').empty();
+                        const selectedRoles = currentRoles.filter(function (role) {
+                            return selectedRoleIds.has(role.roleId);
+                        });
+                        if (selectedRoles.length === 0) {
+                            $rolesCell.append($('<span>', {
+                                class: 'text-muted',
+                                text: 'Chưa được gán Role'
+                            }));
+                        } else {
+                            selectedRoles.forEach(function (role) {
+                                $rolesCell.append($('<span>', {
+                                    class: 'badge text-bg-secondary me-1',
+                                    text: role.roleName
+                                }));
+                            });
+                        }
+
+                        userRoleModal.hide();
+                        showNotification(result.message, true);
+                    })
+                    .fail(function (xhr) {
+                        $('#userRoleModalError').removeClass('d-none').text(getErrorMessage(xhr));
+                    })
+                    .always(function () {
+                        $button.prop('disabled', false);
+                    });
+            }
+
+            $('#userRoleForm').on('submit', function (event) {
+                event.preventDefault();
+                updateUserRoles();
+            });
+            $('tbody').on('click', '.assign-user-roles-button', function () {
+                openUserRolesModal(String($(this).attr('data-user-id')));
+            });
+            $('#userRoleModal').on('hidden.bs.modal', function () {
+                currentUser = null;
+                currentRoles = [];
+            });
+        });
+    </script>
+}

@@ -1,0 +1,312 @@
+@{
+    ViewData["Title"] = "Quản lý Role";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Quản lý Role</h1>
+            <p class="text-muted mb-0">Danh sách các vai trò trong hệ thống</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="addRoleButton">Thêm mới Role</button>
+    </div>
+
+    <div id="roleNotification" class="alert d-none mb-3" role="status" aria-live="polite"></div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">Tên Role</th>
+                            <th scope="col" class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roleTableBody">
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="roleModal" tabindex="-1" aria-labelledby="roleModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="roleForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="roleModalTitle">Thêm mới Role</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="roleModalError" class="alert alert-danger d-none" role="alert"></div>
+                    <label for="roleName" class="form-label">Tên Role</label>
+                    <input type="text" class="form-control" id="roleName" maxlength="256" required />
+                    <div class="invalid-feedback">Vui lòng nhập tên Role (tối đa 256 ký tự).</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="saveRoleButton">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteRoleModal" tabindex="-1" aria-labelledby="deleteRoleModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="deleteRoleModalTitle">Xác nhận xóa</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div id="deleteRoleError" class="alert alert-danger d-none" role="alert"></div>
+                Bạn có chắc chắn muốn xóa Role <strong id="deleteRoleName"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteRoleButton">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const urls = {
+                getAll: '@Url.Action("GetAll", "Role")',
+                create: '@Url.Action("Create", "Role")',
+                edit: '@Url.Action("Edit", "Role")',
+                delete: '@Url.Action("Delete", "Role")',
+                permissions: '@Url.Action("Index", "Permission")'
+            };
+            const antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+            const roleModal = new bootstrap.Modal(document.getElementById('roleModal'));
+            const deleteRoleModal = new bootstrap.Modal(document.getElementById('deleteRoleModal'));
+            let roles = [];
+            let editingRoleId = null;
+            let deletingRoleId = null;
+
+            function showNotification(message, success) {
+                $('#roleNotification')
+                    .toggleClass('alert-success', success)
+                    .toggleClass('alert-danger', !success)
+                    .text(message)
+                    .removeClass('d-none');
+            }
+
+            function getErrorMessage(xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    return xhr.responseJSON.message;
+                }
+
+                if (xhr.status === 401) {
+                    return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                }
+
+                if (xhr.status === 403) {
+                    return 'Bạn không có quyền thực hiện thao tác này.';
+                }
+
+                return 'Đã xảy ra lỗi khi xử lý yêu cầu.';
+            }
+
+            function loadRoles() {
+                $.getJSON(urls.getAll)
+                    .done(function (result) {
+                        roles = result;
+                        const $body = $('#roleTableBody').empty();
+                        if (roles.length === 0) {
+                            $body.append(
+                                $('<tr>').append(
+                                    $('<td>', {
+                                        colspan: 3,
+                                        class: 'text-center text-muted py-4'
+                                    }).text('Chưa có Role nào.')
+                                )
+                            );
+                            return;
+                        }
+
+                        roles.forEach(function (role) {
+                            const $row = $('<tr>');
+                            $row.append($('<td>').text(role.id));
+                            $row.append($('<td>').text(role.name || ''));
+
+                            const $actions = $('<td>', { class: 'text-end text-nowrap' });
+                            $('<a>', {
+                                class: 'btn btn-sm btn-outline-success me-2',
+                                text: 'Phân quyền Action'
+                            })
+                                .attr('href', urls.permissions + '?roleId=' + encodeURIComponent(role.id))
+                                .appendTo($actions);
+                            $('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-primary me-2 edit-role-button',
+                                text: 'Sửa'
+                            }).attr('data-role-id', role.id).appendTo($actions);
+                            $('<button>', {
+                                type: 'button',
+                                class: 'btn btn-sm btn-outline-danger delete-role-button',
+                                text: 'Xóa'
+                            }).attr('data-role-id', role.id).appendTo($actions);
+                            $row.append($actions);
+                            $body.append($row);
+                        });
+                    })
+                    .fail(function (xhr) {
+                        showNotification(getErrorMessage(xhr), false);
+                        $('#roleTableBody').html(
+                            $('<tr>').append(
+                                $('<td>', {
+                                    colspan: 3,
+                                    class: 'text-center text-danger py-4'
+                                }).text('Không thể tải danh sách Role.')
+                            )
+                        );
+                    });
+            }
+
+            function openCreateModal() {
+                const form = $('#roleForm')[0];
+                form.reset();
+                form.classList.remove('was-validated');
+                $('#roleName').removeClass('is-invalid');
+                $('#roleModalTitle').text('Thêm mới Role');
+                $('#saveRoleButton').text('Lưu').prop('disabled', false);
+                $('#roleModalError').addClass('d-none').empty();
+                editingRoleId = null;
+                roleModal.show();
+            }
+
+            function openEditModal(id) {
+                const role = roles.find(function (item) { return item.id === id; });
+                if (!role) {
+                    showNotification('Không tìm thấy Role cần cập nhật.', false);
+                    loadRoles();
+                    return;
+                }
+
+                openCreateModal();
+                editingRoleId = role.id;
+                $('#roleName').val(role.name || '');
+                $('#roleModalTitle').text('Cập nhật Role');
+                $('#saveRoleButton').text('Cập nhật');
+            }
+
+            function saveRole() {
+                const form = $('#roleForm')[0];
+                form.classList.add('was-validated');
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+                const data = { roleName: $('#roleName').val().trim() };
+                const isEdit = editingRoleId !== null;
+                if (isEdit) {
+                    data.id = editingRoleId;
+                }
+
+                const $button = $('#saveRoleButton').prop('disabled', true);
+                $('#roleModalError').addClass('d-none').empty();
+                $.ajax({
+                    url: isEdit ? urls.edit : urls.create,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    headers: { RequestVerificationToken: antiForgeryToken }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            $('#roleModalError').removeClass('d-none')
+                                .text(result.message || 'Không thể lưu Role.');
+                            return;
+                        }
+
+                        roleModal.hide();
+                        showNotification(result.message, true);
+                        loadRoles();
+                    })
+                    .fail(function (xhr) {
+                        $('#roleModalError').removeClass('d-none').text(getErrorMessage(xhr));
+                    })
+                    .always(function () {
+                        $button.prop('disabled', false);
+                    });
+            }
+
+            function openDeleteModal(id) {
+                const role = roles.find(function (item) { return item.id === id; });
+                if (!role) {
+                    showNotification('Không tìm thấy Role cần xóa.', false);
+                    loadRoles();
+                    return;
+                }
+
+                deletingRoleId = role.id;
+                $('#deleteRoleName').text(role.name || role.id);
+                $('#deleteRoleError').addClass('d-none').empty();
+                $('#confirmDeleteRoleButton').prop('disabled', false);
+                deleteRoleModal.show();
+            }
+
+            function deleteRole() {
+                if (deletingRoleId === null) {
+                    return;
+                }
+
+                const $button = $('#confirmDeleteRoleButton').prop('disabled', true);
+                $.ajax({
+                    url: urls.delete,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { id: deletingRoleId },
+                    headers: { RequestVerificationToken: antiForgeryToken }
+                })
+                    .done(function (result) {
+                        if (!result.success) {
+                            $('#deleteRoleError').removeClass('d-none')
+                                .text(result.message || 'Không thể xóa Role.');
+                            return;
+                        }
+
+                        deleteRoleModal.hide();
+                        showNotification(result.message, true);
+                        loadRoles();
+                    })
+                    .fail(function (xhr) {
+                        $('#deleteRoleError').removeClass('d-none').text(getErrorMessage(xhr));
+                    })
+                    .always(function () {
+                        $button.prop('disabled', false);
+                    });
+            }
+
+            $('#addRoleButton').on('click', openCreateModal);
+            $('#roleForm').on('submit', function (event) {
+                event.preventDefault();
+                saveRole();
+            });
+            $('#roleTableBody').on('click', '.edit-role-button', function () {
+                openEditModal(String($(this).attr('data-role-id')));
+            });
+            $('#roleTableBody').on('click', '.delete-role-button', function () {
+                openDeleteModal(String($(this).attr('data-role-id')));
+            });
+            $('#confirmDeleteRoleButton').on('click', deleteRole);
+            $('#deleteRoleModal').on('hidden.bs.modal', function () {
+                deletingRoleId = null;
+            });
+
+            loadRoles();
+        });
+    </script>
+}

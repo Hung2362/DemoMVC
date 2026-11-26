@@ -177,6 +177,14 @@
                 }, 4000);
             }
 
+            $(document).ajaxError(function (event, xhr) {
+                if (xhr.status === 401) {
+                    showNotification('Bạn cần đăng nhập để tiếp tục. Vui lòng đăng nhập rồi thử lại.', false);
+                } else if (xhr.status === 403) {
+                    showNotification('Tài khoản User không có quyền thêm, sửa hoặc xóa. Vui lòng dùng tài khoản Admin.', false);
+                }
+            });
+
             function getErrorMessage(xhr) {
                 const response = xhr.responseJSON;
                 if (response && response.message) {

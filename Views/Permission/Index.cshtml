@@ -1,0 +1,189 @@
+@model RolePermissionsViewModel
+
+@{
+    ViewData["Title"] = "Phân quyền Action";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">Phân quyền Action</h1>
+            <p class="text-muted mb-0">Role: <strong>@Model.RoleName</strong></p>
+        </div>
+        <a asp-controller="Role" asp-action="Index" class="btn btn-outline-secondary">Quay lại quản lý Role</a>
+    </div>
+
+    <div id="permissionNotification" class="alert d-none mb-3" role="status" aria-live="polite"></div>
+
+    <form id="permissionsForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="roleId" value="@Model.RoleId" />
+        <input type="hidden" id="roleName" value="@Model.RoleName" />
+
+        <div class="d-grid gap-3">
+            @for (var controllerIndex = 0; controllerIndex < Model.Controllers.Count; controllerIndex++)
+            {
+                var controller = Model.Controllers[controllerIndex];
+                <section class="card shadow-sm controller-permission-group"
+                         data-controller-name="@controller.ControllerName">
+                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <h2 class="h5 mb-0">@controller.ControllerName</h2>
+                        <div class="form-check">
+                            <input class="form-check-input select-controller-actions"
+                                   type="checkbox"
+                                   id="selectController@(controllerIndex)" />
+                            <label class="form-check-label" for="selectController@(controllerIndex)">
+                                Chọn tất cả
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (controller.Actions.Count == 0)
+                        {
+                            <span class="text-muted">Không có Action.</span>
+                        }
+                        else
+                        {
+                            <div class="row g-2">
+                                @foreach (var action in controller.Actions)
+                                {
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input action-permission-checkbox"
+                                                   type="checkbox"
+                                                   id="permission-@(controllerIndex)-@action.ActionName"
+                                                   data-permission-value="@action.PermissionValue"
+                                                   data-action-name="@action.ActionName"
+                                                   checked="@action.IsSelected" />
+                                            <label class="form-check-label"
+                                                   for="permission-@(controllerIndex)-@action.ActionName">
+                                                @action.ActionName
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+            @if (Model.Controllers.Count == 0)
+            {
+                <div class="alert alert-info mb-0">Không tìm thấy Controller hoặc Action nào.</div>
+            }
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-primary" id="savePermissionsButton">
+                Lưu phân quyền
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const updateUrl = '@Url.Action("UpdatePermissions", "Permission")';
+            const antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+
+            function getErrorMessage(xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    return xhr.responseJSON.message;
+                }
+
+                if (xhr.status === 401) {
+                    return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                }
+
+                if (xhr.status === 403) {
+                    return 'Bạn không có quyền thực hiện thao tác này.';
+                }
+
+                return 'Đã xảy ra lỗi khi lưu phân quyền.';
+            }
+
+            function showNotification(message, success) {
+                $('#permissionNotification')
+                    .toggleClass('alert-success', success)
+                    .toggleClass('alert-danger', !success)
+                    .text(message)
+                    .removeClass('d-none');
+            }
+
+            function updateSelectAllCheckbox($group) {
+                const $actions = $group.find('.action-permission-checkbox');
+                const selectedCount = $actions.filter(':checked').length;
+                const selectAll = $group.find('.select-controller-actions')[0];
+                selectAll.checked = $actions.length > 0 && selectedCount === $actions.length;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < $actions.length;
+            }
+
+            $('.controller-permission-group').each(function () {
+                updateSelectAllCheckbox($(this));
+            });
+
+            $('.controller-permission-group').on('change', '.select-controller-actions', function () {
+                const $group = $(this).closest('.controller-permission-group');
+                $group.find('.action-permission-checkbox').prop('checked', this.checked);
+                updateSelectAllCheckbox($group);
+            });
+
+            $('.controller-permission-group').on('change', '.action-permission-checkbox', function () {
+                updateSelectAllCheckbox($(this).closest('.controller-permission-group'));
+            });
+
+            $('#permissionsForm').on('submit', function (event) {
+                event.preventDefault();
+
+                const controllers = [];
+                $('.controller-permission-group').each(function () {
+                    const $group = $(this);
+                    const actions = [];
+                    $group.find('.action-permission-checkbox').each(function () {
+                        const permissionValue = String($(this).attr('data-permission-value'));
+                        actions.push({
+                            controllerName: String($group.attr('data-controller-name')),
+                            actionName: String($(this).attr('data-action-name')),
+                            permissionValue: permissionValue,
+                            isSelected: this.checked
+                        });
+                    });
+                    controllers.push({
+                        controllerName: String($group.attr('data-controller-name')),
+                        actions: actions
+                    });
+                });
+
+                const model = {
+                    roleId: $('#roleId').val(),
+                    roleName: $('#roleName').val(),
+                    controllers: controllers
+                };
+                const $button = $('#savePermissionsButton').prop('disabled', true);
+                $.ajax({
+                    url: updateUrl,
+                    method: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    data: JSON.stringify(model),
+                    headers: { RequestVerificationToken: antiForgeryToken }
+                })
+                    .done(function (result) {
+                        showNotification(
+                            result.message || (result.success
+                                ? 'Cập nhật quyền Action thành công!'
+                                : 'Không thể cập nhật quyền Action.'),
+                            result.success
+                        );
+                    })
+                    .fail(function (xhr) {
+                        showNotification(getErrorMessage(xhr), false);
+                    })
+                    .always(function () {
+                        $button.prop('disabled', false);
+                    });
+            });
+        });
+    </script>
+}
